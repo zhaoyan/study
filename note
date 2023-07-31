@@ -20,6 +20,22 @@ use nc as client for s04.
 
 -----------------------------------------
 
+s10/test11 is chargen server. chargen is server once connect, it will send out data continuously 
+
+EventLoopThreadPool 
+std::vector<EventLoop*> loops_;
+getNextLoop
+-----------------------------
+
+EventLoop* ioLoop = threadPool_->getNextLoop();
+  TcpConnectionPtr conn( new TcpConnection(ioLoop, connName, sockfd, localAddr, peerAddr)); //put conn into a different ioLoop.
+    //then conn has channel , channel call update channel to add fd into the ioLoop moniotr fd vector(map)
+    //detail can be see s00 and s01, it introduce channel in detail. 
+
+--------------------------------------------
+
+
+
 
 
 
