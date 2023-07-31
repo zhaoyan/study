@@ -1,0 +1,3 @@
+/home/yan/cpp_test/CppCoroutines-master/04.task/b1/CMakeFiles/rebuild_cache.dir
+/home/yan/cpp_test/CppCoroutines-master/04.task/b1/CMakeFiles/edit_cache.dir
+/home/yan/cpp_test/CppCoroutines-master/04.task/b1/CMakeFiles/coroutine-task.dir

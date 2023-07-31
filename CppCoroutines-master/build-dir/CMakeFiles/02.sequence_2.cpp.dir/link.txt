@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/02.sequence_2.cpp.dir/02.sequence_2.cpp.o -o 02.sequence_2.cpp 

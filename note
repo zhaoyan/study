@@ -1,0 +1,25 @@
+compiler version.
+
+yan@yan-VirtualBox:~/recipes/recipes-master/reactor/s01$ g++ --version
+g++ (Ubuntu 11.3.0-1ubuntu1~22.04.1) 11.3.0
+Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+------------------------------------
+yan@yan-VirtualBox:~/recipes/recipes-master/reactor/s01$ make  compile muduo
+
+--------------------------------------------------------------
+
+coroutin.
+~/cpp_test/CppCoroutines-master/build-dir$   you build build-dir, then run ..cmake,  then make.
+
+-----------------------------------
+use nc as client for s04. 
+
+-----------------------------------------
+
+
+
+
