@@ -1,3 +1,7 @@
+There are some introduction in basic_knowledge.tex about muduo libary.  this note is about two project. origin include copy from website, don't change it. 
+other two have changed and include my own code.  also include docs,  coroutin is webpage, moduos is book. 
+
+
 compiler version.
 
 yan@yan-VirtualBox:~/recipes/recipes-master/reactor/s01$ g++ --version
@@ -13,7 +17,7 @@ yan@yan-VirtualBox:~/recipes/recipes-master/reactor/s01$ make  compile muduo
 --------------------------------------------------------------
 
 coroutin.
-~/cpp_test/CppCoroutines-master/build-dir$   you build build-dir, then run ..cmake,  then make.
+~/cpp_test/CppCoroutines-master/build-dir$   you build build-dir, then run cmake ..,  then make.
 
 -----------------------------------
 use nc as client for s04. 
@@ -33,6 +37,107 @@ EventLoop* ioLoop = threadPool_->getNextLoop();
     //detail can be see s00 and s01, it introduce channel in detail. 
 
 --------------------------------------------
+
+/home/yan/study/CppCoroutines-master/09.http/ need conan (that is package management system) The new version is conan2.0. don't use the original version(that is conan 1.x). A good example is https://docs.conan.io/2/tutorial/consuming_packages/build_simple_cmake_project.html here. If you want to use httplib. you need to go to the https://conan.io/center, then search httplib to get recipes. There are some cmake and command examples there. 
+
+
+
+
+
+\chapter{draft}
+\section{coroutine}
+\begin{itemize}
+	\item For coroutin, there are two points to scheduling (dispatching)  \texttt{init\_suspend} and \texttt{await\_suspend}. 
+	
+	\item Task(can pause, and resume), generator is also a task
+	
+	\item promise\_type is bridge between caller and coroutine
+	
+	\item .then and .finally put call back into the queue by using on\_complete. call backs in the queue will be called when coroutin return.
+	
+	\item 
+\end{itemize}
+
+\section{internet}
+\begin{itemize}
+	\item Internet is also a event drivern, just like Event driven in GUI,  GUI use button, internet use socket. 
+	
+	\item block, unblock, sync, async difference. block is not related with if fun return. It depends if OS suspend thread and put it into the wait state. thread has three state. ready, wait and running.  When thread perform IO. OS will put it into wait. That is called block.  Once IO finish, OS put the thread into the ready state. all threads in ready state can join the scheduling. unblock will return error immediately event IO didn't begin. In esstially, thread is still in running state, and OS will not  suspend the current thread and put it into the wait state.  Sync refer when IO begin, do we need to suspend the current thread. sync will , linux has not OS level async, only a fake sync in user space by using pthread.  windows has OS level async.  
+	
+	
+	\item Reactor is a non-blocking synchronous network pattern that perceives ready-to-read and write events. Each time an event occurs (such as a ready-to-read event), the application process needs to actively call the read method to complete the data reading. This means the application process has to actively read data from the socket receive buffer to its memory. This process is synchronous, and the application process can only handle the data after it has been read.
+	
+	Proactor is an asynchronous network pattern that perceives completed read and write events. When initiating asynchronous read and write requests, the application process needs to pass information such as the data buffer's address to the system kernel, so that the kernel can automatically handle the data reading and writing. In the Proactor pattern, the data reading and writing are entirely handled by the operating system, and there is no need for the application process to actively initiate read/write operations as in the Reactor pattern. After the operating system completes the read and write operations, it directly notifies the application process to handle the data.
+	
+	Therefore, Reactor can be understood as "when an event occurs, the operating system notifies the application process to handle it," while Proactor can be understood as "when an event occurs, the operating system handles it and then notifies the application process." The "events" here refer to I/O events such as new connections, data ready for reading, and data ready for writing. The "handling" includes reading from the driver to the kernel and reading from the kernel to the user space.
+	
+	Some people might say that non-blocking IO is not blocked. Here's a very 'tricky' part: the term 'IO operation' in this context refers to the actual IO operation, such as the system call 'recvfrom' mentioned in the example. When using non-blocking IO to execute the 'recvfrom' system call, if the data is not ready in the kernel, the process won't be blocked at that moment. However, when the data is ready in the kernel, 'recvfrom' will copy the data from the kernel to the user memory, and during this time, the process is blocked.
+	
+	On the other hand, asynchronous IO works differently. After the process initiates an IO operation, it returns immediately and pays no further attention. It will only resume when the kernel sends a signal to inform the process that the IO is complete. Throughout this entire process, the process is not blocked at all.
+	
+	\item why multiplex need non-block?  multiplex can't be block in the read and write, only can be blocked at poll and epoll. why it's need buffer? it can't be block in sync IO too. because when we want to write 100k, socket can't finish one time, it will still block there. So we must use buffer, write it to buffer, then return immediately.  Even after a level-triggered API such as select() or poll() informs us that a file descriptor for a stream socket is ready for writing, if we write a large enough block of data in a single write() or send(), then the call will nevertheless block.
+	In rare cases, level-triggered APIs such as select() and poll() can return spurious readiness notifications—they can falsely inform us that a file descriptor is ready. This could be caused by a kernel bug or be expected behavior in an uncommon scenario.
+	
+	
+	\item reactor model. 
+	\begin{enumerate}
+		\item One loop per thread.
+		
+		\item One loop listen, once get a connecting socket, robin loop select thread from thread pool and and add this connection socket to this thread. That is all. 
+		
+	\end{enumerate}
+	
+	\item https://github.com/zhaoyan/study include two important project. one is muduos. 
+	
+	
+\end{itemize}
+
+-----------------------------------------------------------------
+09.http includes my new test code. That is interesting. coroutin doesn't conflict or replace thread, in fact, it work together with thread to finish some tasks. we have main tread. one looper thread, one async thread. 
+
+in looper thread, may include a few co_await.  each co_wait run in it's async thread. 
+
+task<*, looperthread>
+coroutin
+{
+	co_await get_from_IO  // use async thread, thread finish when IO finish.
+	
+	calcuate ...    //use looper thread calculate, resume here.
+	co_await output_IO
+}
+
+main(){
+
+auto result = coroutin();
+result.then([]()) //add a call back if you like, if you don't have any call back, skip here.
+
+//keep running, because coroutin in different thread, so coroutin return back immediate. 
+//main can take care main event loop here. 
+
+}
+
+You can see the coroutin pay more attention pause(current thread), and resume(current thread when subtask finish), it give you a kind of scheduling ability, different with thread,  thread scheduling is controled by OS, not you.
+
+---------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
